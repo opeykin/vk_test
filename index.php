@@ -16,18 +16,48 @@
 <body>
 
 <?php
-$username = "dev";
-$pwd = "dev";
-$hostname = "localhost";
 
-$db = mysqli_connect($hostname, $username, $pwd) or die("Can't connect");
-mysqli_select_db($db, "vk_test") or die("Cant' select db");
+function db_connect($host = '', $user = '', $password = '', $database = '')
+{
+    $handle = mysqli_connect($host, $user, $password, $database);
+    if (!$handle) {
+        $msg = 'MySQL connection failed.';
+        $data = "host=$host user=$user db=$database";
+        error_log($msg . ' ' . mysqli_connect_error() . ' ' . $data);
+        return false;
+    }
 
-$result = mysqli_query($db, "SELECT id, price FROM items ORDER BY price LIMIT 10");
-while ($row = mysqli_fetch_row($result)) {
-    echo $row[0].": ".$row[1]."<br>";
+    return $handle;
 }
 
+function row_to_html($row)
+{
+    return
+        "<div class='list_item clearfix'>
+    <div class='list_photo image_wrapper fl_l'>
+        <img src=\"$row[1]\">
+    </div>
+    <div class='list_text_block'>
+        <div>$row[2]</div>
+        <div>$row[3]</div>
+        <div>$row[4]</div>
+    </div>
+</div>";
+}
+
+$handle = db_connect('localhost', 'dev', 'dev', 'vk_test2') or die("Can't connect");
+
+$result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY price LIMIT 10");
+echo '<div>';
+
+while ($row = mysqli_fetch_row($result)) {
+//    echo '<div>' . $row[0] . ': ' . $row[1] . '</div>';
+    echo row_to_html($row);
+}
+
+echo '</div>';
+
+mysqli_close($handle);
 ?>
 
 <!--<script src="https://code.jquery.com/jquery-3.2.1.min.js"-->
