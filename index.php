@@ -45,19 +45,25 @@ function row_to_html($row)
 </div>";
 }
 
-$handle = db_connect('localhost', 'dev', 'dev', 'vk_test2') or die("Can't connect");
+function rows_to_html($rows)
+{
+    echo '<div>';
 
-$result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY price LIMIT 10");
-echo '<div>';
+    foreach ($rows as &$row) {
+        echo row_to_html($row);
+    }
 
-while ($row = mysqli_fetch_row($result)) {
-//    echo '<div>' . $row[0] . ': ' . $row[1] . '</div>';
-    echo row_to_html($row);
+    echo '</div>';
 }
 
-echo '</div>';
+$PAGE_SIZE = 50;
+$handle = db_connect('localhost', 'dev', 'dev', 'vk_test2') or die('Can\'t connect');
 
+$result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY price LIMIT $PAGE_SIZE");
+$rows = mysqli_fetch_all($result, MYSQLI_NUM);
+rows_to_html($rows);
 mysqli_close($handle);
+
 ?>
 
 <!--<script src="https://code.jquery.com/jquery-3.2.1.min.js"-->
