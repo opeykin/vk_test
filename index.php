@@ -17,19 +17,16 @@
 
 <?php
 
-class Constants
-{
-    const PAGE_SIZE = 50;
-}
+require 'utils/db_routines.php';
+require 'utils/Constants.php';
 
 function get_order()
 {
     if (!isset($_GET['order']))
         return 0;
 
-    if (is_numeric($_GET['order'])) {
+    if (is_numeric($_GET['order']))
         return (int)$_GET['order'];
-    }
 
     return 0;
 }
@@ -54,18 +51,7 @@ for ($i = 0; $i < count($sort_items); $i++) {
 echo '</select></div>';
 
 
-function db_connect($host = '', $user = '', $password = '', $database = '')
-{
-    $handle = mysqli_connect($host, $user, $password, $database);
-    if (!$handle) {
-        $msg = 'MySQL connection failed.';
-        $data = "host=$host user=$user db=$database";
-        error_log($msg . ' ' . mysqli_connect_error() . ' ' . $data);
-        return false;
-    }
 
-    return $handle;
-}
 
 function row_to_html($row)
 {
@@ -131,7 +117,8 @@ function get_sorting()
 
 function fetch_items_from_db($sort_column, $sort_direction, $skip)
 {
-    $handle = db_connect('localhost', 'dev', 'dev', 'vk_test2') or die('Can\'t connect');
+    $db_config = parse_ini_file(Constants::DB_CONFIG_PATH);
+    $handle = db_connect($db_config['host'], $db_config['user'], $db_config['password'], $db_config['database']) or die('Can\'t connect');
     $page_size = Constants::PAGE_SIZE;
     $result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
     $rows = mysqli_fetch_all($result, MYSQLI_NUM);
