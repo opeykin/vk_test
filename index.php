@@ -17,6 +17,11 @@
 
 <?php
 
+class Constants
+{
+    const PAGE_SIZE = 50;
+}
+
 function get_order()
 {
     if (!isset($_GET['order']))
@@ -47,7 +52,6 @@ for ($i = 0; $i < count($sort_items); $i++) {
 }
 
 echo '</select></div>';
-
 
 
 function db_connect($host = '', $user = '', $password = '', $database = '')
@@ -90,9 +94,6 @@ function rows_to_html($rows)
 }
 
 
-$PAGE_SIZE = 50;
-
-
 function get_page()
 {
     if (!isset($_GET['page']))
@@ -106,7 +107,6 @@ function get_page()
 
     return (int)$page;
 }
-
 
 
 function get_sorting()
@@ -128,17 +128,27 @@ function get_sorting()
     return array('price', 'ASC');
 }
 
-$skip = get_page() * $PAGE_SIZE;
+
+function fetch_items_from_db($sort_column, $sort_direction, $skip)
+{
+    $handle = db_connect('localhost', 'dev', 'dev', 'vk_test2') or die('Can\'t connect');
+    $page_size = Constants::PAGE_SIZE;
+    $result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
+    $rows = mysqli_fetch_all($result, MYSQLI_NUM);
+    mysqli_close($handle);
+    return $rows;
+}
+
+$skip = get_page() * Constants::PAGE_SIZE;
 $sorting = get_sorting();
 $sort_column = $sorting[0];
 $sort_direction = $sorting[1];
 
-$handle = db_connect('localhost', 'dev', 'dev', 'vk_test2') or die('Can\'t connect');
 
-$result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $PAGE_SIZE");
-$rows = mysqli_fetch_all($result, MYSQLI_NUM);
+$rows = fetch_items_from_db($sort_column, $sort_direction, $skip);
+
 rows_to_html($rows);
-mysqli_close($handle);
+
 
 ?>
 
