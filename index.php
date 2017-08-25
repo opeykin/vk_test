@@ -102,7 +102,7 @@ function get_sorting()
 function fetch_items_from_db($sort_column, $sort_direction, $skip)
 {
     $db_config = parse_ini_file(Constants::DB_CONFIG_PATH);
-    $handle = db_connect($db_config['host'], $db_config['user'], $db_config['password'], $db_config['database']) or die('Can\'t connect');
+    $handle = db_connect($db_config) or die('Can\'t connect');
     $page_size = Constants::PAGE_SIZE;
     $result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
     $rows = mysqli_fetch_all($result, MYSQLI_NUM);
