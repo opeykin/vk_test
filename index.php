@@ -1,24 +1,8 @@
-<!doctype html>
-<html class="no-js" lang="">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title></title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link rel="manifest" href="site.webmanifest">
-    <link rel="apple-touch-icon" href="icon.png">
-
-    <link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="css/main.css">
-</head>
-<body>
-
 <?php
 
-require 'utils/db_routines.php';
-require 'utils/Constants.php';
+include_once 'header.php';
+require_once 'utils/db_routines.php';
+require_once 'utils/Constants.php';
 
 function get_order()
 {
@@ -137,13 +121,4 @@ $rows = fetch_items_from_db($sort_column, $sort_direction, $skip);
 rows_to_html($rows);
 
 
-?>
-
-<!--<script src="https://code.jquery.com/jquery-3.2.1.min.js"-->
-<!--integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>-->
-<!--<script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>-->
-<!--<script src="js/plugins.js"></script>-->
-<script src="js/main.js"></script>
-
-</body>
-</html>
+include_once 'footer.php';
