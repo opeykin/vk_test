@@ -70,15 +70,18 @@ function get_sorting()
 }
 
 
-function fetch_items_from_db($sort_column, $sort_direction, $skip)
+function db_fetch_items($handle, $sort_column, $sort_direction, $skip)
 {
-    $db_config = parse_ini_file(Constants::DB_CONFIG_PATH);
-    $handle = db_connect($db_config) or die('Can\'t connect');
     $page_size = Constants::PAGE_SIZE;
     $result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
     $rows = mysqli_fetch_all($result, MYSQLI_NUM);
-    mysqli_close($handle);
     return $rows;
+}
+
+function db_fetch_items_count($handle)
+{
+    $result = mysqli_query($handle, 'SELECT count(*) FROM items;');
+    return mysqli_fetch_row($result)[0];
 }
 
 include_once 'header.php';
@@ -90,9 +93,15 @@ $sort_column = $sorting[0];
 $sort_direction = $sorting[1];
 
 
-$rows = fetch_items_from_db($sort_column, $sort_direction, $skip);
+$db_config = parse_ini_file(Constants::DB_CONFIG_PATH);
+$handle = db_connect($db_config) or die('Can\'t connect');
+
+$rows = db_fetch_items($handle, $sort_column, $sort_direction, $skip);
+$items_count = db_fetch_items_count($handle);
 
 rows_to_html($rows);
+
+echo 'Pages: ' . (int)($items_count / Constants::PAGE_SIZE + 1);
 
 
 include_once 'footer.php';
