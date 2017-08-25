@@ -1,38 +1,8 @@
 <?php
 
-include_once 'header.php';
+
 require_once 'utils/db_routines.php';
 require_once 'utils/Constants.php';
-
-function get_order()
-{
-    if (!isset($_GET['order']))
-        return 0;
-
-    if (is_numeric($_GET['order']))
-        return (int)$_GET['order'];
-
-    return 0;
-}
-
-// sorter with correct element selected
-// TODO: Look like shit. Do people even generate stuff like this?
-
-echo '<div class="clearfix">
-    <div class="fl_l">I want to see</div>
-    <select onchange="document.location.href=\'?order=\'+this.selectedIndex">';
-
-$order = get_order();
-$sort_items = array('Cheap', 'Expensive', 'Old', 'New');
-
-for ($i = 0; $i < count($sort_items); $i++) {
-    echo '<option ';
-    if ($i === $order)
-        echo 'selected';
-    echo ">$sort_items[$i]</option>";
-}
-
-echo '</select></div>';
 
 
 
@@ -81,7 +51,8 @@ function get_page()
 
 function get_sorting()
 {
-    $order = get_order();
+    $order = (int)($_GET['order'] ?? 0);
+
     switch ($order) {
         case '0': // cheap
             return array('price', 'ASC');
@@ -109,6 +80,9 @@ function fetch_items_from_db($sort_column, $sort_direction, $skip)
     mysqli_close($handle);
     return $rows;
 }
+
+include_once 'header.php';
+include 'sorting_selector.php';
 
 $skip = get_page() * Constants::PAGE_SIZE;
 $sorting = get_sorting();
