@@ -3,7 +3,6 @@
 
 include_once 'header.php';
 require_once 'utils/db_routines.php';
-require_once 'utils/Constants.php';
 
 // all params checks
 function fields()

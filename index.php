@@ -2,9 +2,6 @@
 
 
 require_once 'utils/db_routines.php';
-require_once 'utils/Constants.php';
-
-
 
 
 function row_to_html($row)
@@ -109,19 +106,6 @@ function get_sorting($order)
 }
 
 
-function db_fetch_items($handle, $sort_column, $sort_direction, $skip)
-{
-    $page_size = Constants::PAGE_SIZE;
-    $result = mysqli_query($handle, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
-    $rows = mysqli_fetch_all($result, MYSQLI_NUM);
-    return $rows;
-}
-
-function db_fetch_items_count($handle)
-{
-    $result = mysqli_query($handle, 'SELECT count(*) FROM items;');
-    return mysqli_fetch_row($result)[0];
-}
 
 include_once 'header.php';
 include 'sorting_selector.php';
