@@ -28,9 +28,9 @@ $items = db_fetch_items($db, $params['sort_field'], $params['sort_direction'], $
 
 
 
-include 'header.php';
+include 'templates/header.php';
 include 'sorting_selector.php';
 include 'items.php';
 html_print_page_switcher($page, $page_count, $order);
 
-include 'footer.php';
+include 'templates/footer.php';

@@ -1,9 +1,11 @@
 <?php
 
 
-include_once 'header.php';
+
 require_once 'utils/utils.php';
 require_once 'add_impl.php';
+
+include_once 'templates/header.php';
 
 $fields = fields();
 if ($fields) {
@@ -15,4 +17,4 @@ if ($fields) {
     include_once 'add_form.php';
 }
 
-include_once 'footer.php';
+include_once 'templates/footer.php';
