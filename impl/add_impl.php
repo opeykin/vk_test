@@ -3,7 +3,7 @@ require_once 'utils/db_routines.php';
 
 
 // all params checks
-function fields()
+function get_add_params()
 {
     if (empty($_POST['name']) || empty($_POST['price'])) {
         return false;
