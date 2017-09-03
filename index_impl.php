@@ -3,21 +3,6 @@
 require_once 'utils/db_routines.php';
 
 
-function item_to_html($item)
-{
-    return
-        "<div class='list_item clearfix'>
-    <div class='list_photo image_wrapper fl_l'>
-        <img src=\"$item[1]\">
-    </div>
-    <div class='list_text_block'>
-        <div>$item[2]</div>
-        <div>$item[3]</div>
-        <div>$item[4]</div>
-    </div>
-</div>";
-}
-
 function html_print_page_link($url, $order, $page, $text) {
     $url_with_params = "$url?order=$order&page=$page";
     echo "<a href='$url_with_params'>$text</a>";
@@ -49,18 +34,6 @@ function html_print_page_switcher($cur_page, $page_count, $order)
 
     echo '</div>';
 }
-
-function html_print_rows($items)
-{
-    echo '<div>';
-
-    foreach ($items as &$item) {
-        echo item_to_html($item);
-    }
-
-    echo '</div>';
-}
-
 
 function get_sort_field($order)
 {

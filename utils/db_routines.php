@@ -37,7 +37,7 @@ function db_fetch_items($db, $sort_column, $sort_direction, $skip)
 {
     $page_size = Constants::PAGE_SIZE;
     $result = mysqli_query($db, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
-    $rows = mysqli_fetch_all($result, MYSQLI_NUM);
+    $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
     return $rows;
 }
 
