@@ -2,6 +2,7 @@
 
 
 require_once 'index_impl.php';
+require_once 'utils/utils.php';
 include_once 'header.php';
 include 'sorting_selector.php';
 
@@ -24,9 +25,9 @@ if ($page >= $page_count) {
 
 $skip = $page * Constants::PAGE_SIZE;
 
-$rows = db_fetch_items($db, $params['sort_field'], $params['sort_direction'], $skip);
+$items = db_fetch_items($db, $params['sort_field'], $params['sort_direction'], $skip);
 
-html_print_rows($rows);
+html_print_rows($items);
 html_print_page_switcher($page, $page_count, $order);
 
 

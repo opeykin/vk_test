@@ -3,17 +3,17 @@
 require_once 'utils/db_routines.php';
 
 
-function row_to_html($row)
+function item_to_html($item)
 {
     return
         "<div class='list_item clearfix'>
     <div class='list_photo image_wrapper fl_l'>
-        <img src=\"$row[1]\">
+        <img src=\"$item[1]\">
     </div>
     <div class='list_text_block'>
-        <div>$row[2]</div>
-        <div>$row[3]</div>
-        <div>$row[4]</div>
+        <div>$item[2]</div>
+        <div>$item[3]</div>
+        <div>$item[4]</div>
     </div>
 </div>";
 }
@@ -50,12 +50,12 @@ function html_print_page_switcher($cur_page, $page_count, $order)
     echo '</div>';
 }
 
-function html_print_rows($rows)
+function html_print_rows($items)
 {
     echo '<div>';
 
-    foreach ($rows as &$row) {
-        echo row_to_html($row);
+    foreach ($items as &$item) {
+        echo item_to_html($item);
     }
 
     echo '</div>';
