@@ -35,9 +35,8 @@ function fields()
 
 $fields = fields();
 if ($fields) {
-    $db_config = parse_ini_file(Constants::DB_CONFIG_PATH);
-    $handle = db_connect($db_config);
-    db_add_item($handle, $fields['name'], $fields['price'], $fields['description'], $fields['img']);
+    $db = db_connect();
+    db_add_item($db, $fields['name'], $fields['price'], $fields['description'], $fields['img']);
     echo "SUCCESS";
     header('refresh:5;url=index.php');
 } else {
