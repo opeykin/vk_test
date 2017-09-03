@@ -14,7 +14,7 @@ if ($fields) {
     // TODO: die here if not added to db
     redirect('add_success.php');
 } else {
-    include_once 'add_form.php';
+    include_once 'parts/add_form.php';
 }
 
 include_once 'templates/footer.php';
