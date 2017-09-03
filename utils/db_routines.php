@@ -41,8 +41,33 @@ function db_fetch_items($db, $sort_column, $sort_direction, $skip)
     return $rows;
 }
 
+function db_fetch_item($db, $id)
+{
+    $result = mysqli_query($db, "SELECT * FROM items WHERE id=$id;");
+
+    if (!$result) {
+        error_log("[db_fetch_item] " . mysqli_error($db));
+        return null;
+    }
+
+    return mysqli_fetch_assoc($result);
+}
+
 function db_fetch_items_count($db)
 {
     $result = mysqli_query($db, 'SELECT count(*) FROM items;');
     return mysqli_fetch_row($result)[0];
+}
+
+function db_update_item($db, $item) {
+    $query = "UPDATE items SET name = ?, price = ?, description = ?, img = ? WHERE id = ?;";
+    $stmt = mysqli_prepare($db, $query);
+    mysqli_stmt_bind_param($stmt, 'sissi', $item['name'], $item['price'], $item['description'], $item['img'], $item['id']);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        error_log("[db_update_item] " . mysqli_error($db)."\nquery: $query");
+        return false;
+    }
+
+    return true;
 }
