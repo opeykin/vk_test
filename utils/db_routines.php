@@ -3,13 +3,13 @@
 class Constants
 {
     const PAGE_SIZE = 50;
-    const DB_CONFIG_PATH = 'db.cfg';
+    const DB_CONFIG_PATH = 'connection.cfg';
+    const CACHE_EXPIRE_TIME = 60;
 }
 
-function db_connect()
+function db_connect($config)
 {
-    $config = parse_ini_file(Constants::DB_CONFIG_PATH);
-    $db = mysqli_connect($config['host'], $config['user'], $config['password'], $config['database']);
+    $db = mysqli_connect($config['db_host'], $config['user'], $config['password'], $config['database']);
     if (!$db) {
         error_log('[db_connect] ' . mysqli_connect_error());
         return false;

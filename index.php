@@ -3,6 +3,7 @@
 
 require_once 'impl/index_impl.php';
 require_once 'utils/utils.php';
+require_once 'utils/model.php';
 
 
 
@@ -12,9 +13,7 @@ if ($params == null) {
     redirect('index.php');
 }
 
-$db = db_connect() or die('Can\'t connect');
-
-$items_count = db_fetch_items_count($db);
+$items_count = model_count();
 $page_count = (int)($items_count / Constants::PAGE_SIZE + 1);
 $page = $params['page'];
 
@@ -24,7 +23,7 @@ if ($page >= $page_count) {
 
 $skip = $page * Constants::PAGE_SIZE;
 
-$items = db_fetch_items($db, $params['sort_field'], $params['sort_direction'], $skip);
+$items = db_fetch_items(db(), $params['sort_field'], $params['sort_direction'], $skip);
 
 
 

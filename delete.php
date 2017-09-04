@@ -1,16 +1,15 @@
 <?php
 
 require_once 'utils/utils.php';
-require_once 'utils/db_routines.php';
+require_once 'utils/model.php';
 
 if (!isset($_GET['id'])) {
     redirect('index.php');
 }
 
 $id = (int)$_GET['id'];
-$db = db_connect();
 
-if (db_delete_item($db, $id)) {
+if (model_delete_item($id)) {
     redirect('delete_success.php');
 } else {
     redirect('index.php');
