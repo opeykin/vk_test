@@ -36,7 +36,7 @@ function db_add_item($db, $name, $price, $description, $img)
 function db_fetch_items($db, $sort_column, $sort_direction, $skip)
 {
     $page_size = Constants::PAGE_SIZE;
-    $result = mysqli_query($db, "SELECT id, img, name, price, description  FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
+    $result = mysqli_query($db, "SELECT * FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
     $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
     return $rows;
 }
@@ -59,7 +59,8 @@ function db_fetch_items_count($db)
     return mysqli_fetch_row($result)[0];
 }
 
-function db_update_item($db, $item) {
+function db_update_item($db, $item)
+{
     $query = "UPDATE items SET name = ?, price = ?, description = ?, img = ? WHERE id = ?;";
     $stmt = mysqli_prepare($db, $query);
     mysqli_stmt_bind_param($stmt, 'sissi', $item['name'], $item['price'], $item['description'], $item['img'], $item['id']);
@@ -70,4 +71,9 @@ function db_update_item($db, $item) {
     }
 
     return true;
+}
+
+function db_delete_item($db, $id)
+{
+    return mysqli_query($db, "DELETE FROM items WHERE id=$id");
 }
