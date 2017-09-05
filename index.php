@@ -34,6 +34,6 @@ include 'parts/list_controls.php';
 // TODO: check for empty db ($items == null)
 include 'parts/items.php';
 
-html_print_page_switcher($page, $page_count, $order);
+html_print_page_switcher($page, $page_count, $params['order']);
 
 include 'templates/footer.php';

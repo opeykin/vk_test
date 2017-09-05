@@ -1,14 +1,15 @@
 <?php
 
 
-function html_print_page_link($url, $order, $page, $text) {
+function html_print_page_link($url, $order, $page, $text, $selected = false) {
     $url_with_params = "$url?order=$order&page=$page";
-    echo "<a href='$url_with_params'>$text</a>";
+    $class = $selected ? '' : 'no_underline';
+    echo "<a class='$class' href='$url_with_params'>$text</a>";
 }
 
 function html_print_page_switcher($cur_page, $page_count, $order)
 {
-    echo '<div>';
+    echo '<div id="page_navigation">';
 
     $url = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
@@ -20,7 +21,7 @@ function html_print_page_switcher($cur_page, $page_count, $order)
         html_print_page_link($url, $order, $cur_page - 1, '...');
     }
 
-    html_print_page_link($url, $order, $cur_page, $cur_page);
+    html_print_page_link($url, $order, $cur_page, $cur_page, true);
 
     if ($cur_page < $page_count - 2) {
         html_print_page_link($url, $order, $cur_page + 1, '...');

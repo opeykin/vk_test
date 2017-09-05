@@ -176,6 +176,23 @@ textarea {
     border-color: transparent;
 }
 
+#page_navigation {
+    text-align: center;
+}
+
+.selected_page {
+    text-decoration: underline;
+}
+
+#page_navigation a {
+    margin: 0px 10px;
+    color: blue;
+}
+
+.no_underline {
+    text-decoration: none;
+}
+
 
 
 
