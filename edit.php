@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 } else {
     $params = get_form_params();
     if ($params['is_ok']) {
-        db_update_item(db(), $params);
+        model_update_item($params);
         // TODO: die if failed
         redirect('edit_success.php');
     } else {

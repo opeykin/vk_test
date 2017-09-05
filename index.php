@@ -21,16 +21,19 @@ if ($page >= $page_count) {
     redirect('index.php');
 }
 
-$skip = $page * Constants::PAGE_SIZE;
+//$skip = $page * Constants::PAGE_SIZE;
 
-$items = db_fetch_items(db(), $params['sort_field'], $params['sort_direction'], $skip);
+$items = model_fetch_items_page($params['sort_field'], $params['sort_direction'], $page);
 
 
 
 
 include 'templates/header.php';
 include 'parts/sorting_selector.php';
+
+// TODO: check for empty db ($items == null)
 include 'parts/items.php';
+
 html_print_page_switcher($page, $page_count, $order);
 
 include 'templates/footer.php';

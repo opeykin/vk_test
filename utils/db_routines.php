@@ -18,12 +18,12 @@ function db_connect($config)
     return $db;
 }
 
-function db_add_item($db, $name, $price, $description, $img)
+function db_add_item($db, $item)
 {
 //    $query = "INSERT INTO items (name, price, description, img) VALUE ('$name', $price, '$description', '$img');";
     $query = "INSERT INTO items (name, price, description, img) VALUE (?, ?, ?, ?);";
     $stmt = mysqli_prepare($db, $query);
-    mysqli_stmt_bind_param($stmt, 'siss', $name, $price, $description, $img);
+    mysqli_stmt_bind_param($stmt, 'siss', $item['name'], $item['price'], $item['description'], $item['img']);
 
     if (!mysqli_stmt_execute($stmt)) {
         error_log("[db_add_item] " . mysqli_error($db)."\nquery: $query");

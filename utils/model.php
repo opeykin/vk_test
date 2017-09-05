@@ -71,11 +71,45 @@ function model_count()
     return $count;
 }
 
-function model_add_item($name, $price, $description, $img)
+function model_get_cache_key($sort_column, $sort_direction)
 {
-    $result = db_add_item(db(), $name, $price, $description, $img);
+    return "SELECT[$sort_column,$sort_direction]";
+}
+
+function model_drop_cache_by_column($sort_column, $sort_direction, $value)
+{
+    $key = model_get_cache_key($sort_column, $sort_direction);
+    $result = cache()->get($key);
+
+    if ($result === false) {
+        return;
+    }
+
+    $first_value = $result[0][$sort_column];
+    $last_value = $result[count($result) - 1][$sort_column];
+
+    $min_value = min($first_value, $last_value);
+    $max_value = max($first_value, $last_value);
+
+    if ($min_value <= $value && $value <= $max_value) {
+        cache()->delete($key);
+    }
+}
+
+function model_drop_cache($item)
+{
+    model_drop_cache_by_column('id', 'ASC', $item['id']);
+    model_drop_cache_by_column('id', 'DESC', $item['id']);
+    model_drop_cache_by_column('price', 'ASC', $item['price']);
+    model_drop_cache_by_column('price', 'DESC', $item['price']);
+}
+
+function model_add_item($item)
+{
+    $result = db_add_item(db(), $item);
     if ($result) {
         cache()->increment('count');
+        model_drop_cache($item);
     }
 
     return $result;
@@ -83,10 +117,50 @@ function model_add_item($name, $price, $description, $img)
 
 function model_delete_item($id)
 {
+    $item = db_fetch_item(db(), $id);
     $result = db_delete_item(db(), $id);
+
     if ($result) {
         cache()->decrement('count');
+        model_drop_cache($item);
     }
 
     return $result;
 }
+
+function model_update_item($item)
+{
+    $result = db_update_item(db(), $item);
+
+    if ($result) {
+        model_drop_cache($item);
+    }
+
+    return $result;
+}
+
+function model_fetch_items_page($sort_column, $sort_direction, $page)
+{
+    $skip = $page * Constants::PAGE_SIZE;
+
+    // cache only first page for now
+    if ($page !== 0) {
+        return db_fetch_items(db(), $sort_column, $sort_direction, $skip);
+    }
+
+    $key = model_get_cache_key($sort_column, $sort_direction);
+    $cache = cache();
+    $result = $cache->get($key);
+
+    if ($result !== false) {
+        return $result;
+    }
+
+    $result = db_fetch_items(db(), $sort_column, $sort_direction, $skip);
+    if ($result) {
+        $cache->set($key, $result, Constants::CACHE_EXPIRE_TIME);
+    }
+
+    return $result;
+}
+

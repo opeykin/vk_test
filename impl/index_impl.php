@@ -1,7 +1,5 @@
 <?php
 
-require_once 'utils/db_routines.php';
-
 
 function html_print_page_link($url, $order, $page, $text) {
     $url_with_params = "$url?order=$order&page=$page";
@@ -58,7 +56,7 @@ function get_params()
         return null;
     }
 
-    $order = (int)($_GET['order'] ?? 0);
+    $order = $_GET['order'] ?? 0;
     if (!is_numeric($order) || $order < 0 || $order > 3) {
         error_log("Illegal GET param. order has unknown value: $order");
         return null;
