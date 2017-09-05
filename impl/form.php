@@ -10,7 +10,7 @@ function get_form_params()
     $name_len = strlen($name);
     $name_error = '';
 
-    if ($name_len > 255) {
+    if ($name_len > 64) {
         $name_error = 'Name is too long';
         $is_ok = false;
     }
@@ -34,6 +34,18 @@ function get_form_params()
         $is_ok = false;
     }
 
+    $img_error = '';
+    if (strlen($_POST['img'] ?? '') > 1024) {
+        $img_error = 'Maximum length is 1024 symbols.';
+        $is_ok = false;
+    }
+
+    $description_error = '';
+    if (strlen($_POST['description'] ?? '') > 2048) {
+        $description_error = 'Maximum length is 2048 symbols.';
+        $is_ok = false;
+    }
+
     //TODO: may be should check that img url is valid.
 
     return array(
@@ -43,7 +55,9 @@ function get_form_params()
         'price' => $price,
         'price_error' => $price_error,
         'img' => $_POST['img'] ?? '',
+        'img_error' => $img_error,
         'description' => $_POST['description'] ?? '',
+        'description_error' => $description_error,
         'is_ok' => $is_ok
     );
 }

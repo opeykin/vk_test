@@ -13,10 +13,12 @@
 
     Image url:
     <input name="img"<?php echo 'value="' . $params['img'] . '"'; ?>>
+    <span><?=$params['img_error']?></span>
     <br>
 
     Description:
     <input name="description"<?php echo 'value="' . $params['description'] . '"'; ?>>
+    <span><?=$params['description_error']?></span>
     <br>
 
     <input type="hidden" name="id" value="<?=$params['id']?>">
