@@ -107,7 +107,7 @@ textarea {
 }
 
 .list_item {
-    padding: 20px 20px;
+    padding: 20px 0px;
     height: 140px;
 }
 
@@ -151,6 +151,32 @@ textarea {
     max-width: 700px;
     margin: 0 auto;
 }
+
+#list_controls {
+    max-width: 700px;
+    margin: 10px auto;
+}
+
+.sorting_selector {
+    background: white;
+}
+
+.button {
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 6px 13px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.button-blue {
+    background: #0af;
+    color: #fff;
+    border-color: transparent;
+}
+
+
 
 
 

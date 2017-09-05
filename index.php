@@ -29,7 +29,7 @@ $items = model_fetch_items_page($params['sort_field'], $params['sort_direction']
 
 
 include 'templates/header.php';
-include 'parts/sorting_selector.php';
+include 'parts/list_controls.php';
 
 // TODO: check for empty db ($items == null)
 include 'parts/items.php';
