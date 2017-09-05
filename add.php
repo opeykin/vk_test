@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 } else {
     $params = get_form_params();
     if ($params['is_ok']) {
-        model_add_item($params['name'], $params['price'], $params['description'], $params['img']);
+        model_add_item($params);
         // TODO: die here if not added to db
         redirect('add_success.php');
     } else {
