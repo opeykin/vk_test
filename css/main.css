@@ -108,6 +108,7 @@ textarea {
 
 .list_item {
     padding: 20px 20px;
+    height: 140px;
 }
 
 .list_photo {
@@ -115,9 +116,24 @@ textarea {
 }
 
 .list_text_block {
-    margin-left: 170px;
+    margin-left: 190px;
 }
 
+.list_title {
+    color: #0091d9;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.list_price {
+    font-size: 16px;
+}
+
+.list_description {
+    font-size: 14px;
+    color: #999999;
+    max-height: 100px;
+}
 
 .image_wrapper {
 }
@@ -125,6 +141,15 @@ textarea {
 .image_wrapper img {
     width:100%;
     max-height: 140px;
+}
+
+.crop {
+    overflow:hidden;
+}
+
+#items_list {
+    max-width: 700px;
+    margin: 0 auto;
 }
 
 
