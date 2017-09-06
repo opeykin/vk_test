@@ -1,6 +1,5 @@
 <?php
 
-require_once 'utils/db_routines.php';
 require_once 'utils/utils.php';
 require_once 'impl/form.php';
 require_once 'model/data_access.php';
@@ -23,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $params = get_form_params();
     if ($params['is_ok']) {
         model_update_item($params);
-        // TODO: die if failed
         redirect('item.php?id='.$params['id']);
     } else {
         include 'parts/edit_form.php';

@@ -1,5 +1,4 @@
 <?php
-require_once 'utils/db_routines.php';
 
 
 // all params checks
