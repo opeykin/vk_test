@@ -19,7 +19,7 @@ class Connections {
 
     public static function getConfigInstance() {
         if (self::$config_instance === null) {
-            self::$config_instance = parse_ini_file(Constants::DB_CONFIG_PATH);;
+            self::$config_instance = parse_ini_file('connection.cfg');
         }
 
         return self::$config_instance;
@@ -48,6 +48,13 @@ class Connections {
     }
 }
 
+class CacheExpireTime
+{
+    const COUNT = 60;
+    const PAGE = 60;
+    const ITEM = 10;
+}
+
 function db()
 {
     return Connections::getDbInstance();
@@ -65,7 +72,7 @@ function model_count()
 
     if ($count === false) {
         $count = db_fetch_items_count(db());
-        $cache->set('count', $count, Constants::CACHE_EXPIRE_TIME);
+        $cache->set('count', $count, CacheExpireTime::COUNT);
     }
 
     return $count;
@@ -177,7 +184,7 @@ function model_fetch_items_page($sort_column, $sort_direction, $page)
 
     $result = db_fetch_items(db(), $sort_column, $sort_direction, $skip);
     if ($result) {
-        $cache->set($key, $result, Constants::CACHE_EXPIRE_TIME);
+        $cache->set($key, $result, CacheExpireTime::PAGE);
     }
 
     return $result;
@@ -197,7 +204,7 @@ function model_fetch_item($id)
     $result = db_fetch_item(db(), $id);
 
     if ($result) {
-        $cache->set($key, $result, Constants::CACHE_EXPIRE_TIME);
+        $cache->set($key, $result, CacheExpireTime::ITEM);
     }
 
     return $result;

@@ -3,8 +3,6 @@
 class Constants
 {
     const PAGE_SIZE = 50;
-    const DB_CONFIG_PATH = 'connection.cfg';
-    const CACHE_EXPIRE_TIME = 60;
 }
 
 function db_connect($config)
