@@ -123,6 +123,7 @@ textarea {
     color: #0091d9;
     font-size: 16px;
     font-weight: 700;
+    text-decoration: none;
 }
 
 .list_price {
@@ -194,6 +195,8 @@ textarea {
     text-decoration: underline;
 }
 
+/*TODO: rename with dashes*/
+
 #page_navigation a {
     margin: 0px 10px;
     color: blue;
@@ -237,6 +240,40 @@ textarea {
     margin: 0;
     padding: 0;
     background-position: 1;
+}
+
+#item {
+    width: 600px;
+    margin: 50px auto;
+}
+
+.item-photo {
+    width: 300px;
+    height: 300px;
+
+}
+
+.item-description {
+    margin-top: 50px;
+    font-size: 16px;
+}
+
+.item-title {
+    color: #0091d9;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.item-price {
+    font-size: 16px;
+}
+
+.item-text-block {
+    margin-left: 350px;
+}
+
+.item-control {
+    text-align: right;
 }
 
 

@@ -5,7 +5,7 @@
                 <img src="<?=empty($item['img']) ? 'img/placeholder.jpg' : $item['img']?>">
             </div>
             <div class='list_text_block'>
-                <div class="list_title"><?=$item['name']?></div>
+                <a href="<?='item.php?id='.$item['id']?>" class="list_title"><?=$item['name']?></a>
                 <div class="list_price"><?=$item['price'] . ' $'?></div>
                 <div class="list_description crop"><?=$item['description']?></div>
             </div>

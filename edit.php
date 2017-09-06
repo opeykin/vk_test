@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($params['is_ok']) {
         model_update_item($params);
         // TODO: die if failed
-        redirect('edit_success.php');
+        redirect('item.php?id='.$params['id']);
     } else {
         include 'parts/edit_form.php';
     }
