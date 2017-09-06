@@ -120,12 +120,18 @@ function model_cache_drop($item)
 function model_add_item($item)
 {
     $result = db_add_item(db(), $item);
-    if ($result) {
-        cache()->increment('count');
-        model_cache_drop($item);
+    if (!$result)
+        return false;
+
+    $id = db_get_last_inserted_id(db());
+    if ($id !== false) {
+        $item['id'] = $id;
     }
 
-    return $result;
+    cache()->increment('count');
+    model_cache_drop($item);
+
+    return $id;
 }
 
 function model_delete_item($id)

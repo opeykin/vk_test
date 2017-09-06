@@ -18,6 +18,11 @@ function db_connect($config)
     return $db;
 }
 
+function db_get_last_inserted_id($db) {
+    $result = mysqli_query($db, 'SELECT @id := LAST_INSERT_ID();');
+    return $result ? mysqli_fetch_row($result)[0] : false;
+}
+
 function db_add_item($db, $item)
 {
 //    $query = "INSERT INTO items (name, price, description, img) VALUE ('$name', $price, '$description', '$img');";
@@ -56,7 +61,7 @@ function db_fetch_item($db, $id)
 function db_fetch_items_count($db)
 {
     $result = mysqli_query($db, 'SELECT count(*) FROM items;');
-    return mysqli_fetch_row($result)[0];
+    return $result ? mysqli_fetch_row($result)[0] : false;
 }
 
 function db_update_item($db, $item)
