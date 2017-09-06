@@ -1,7 +1,7 @@
 <?php
 
 require_once 'utils/utils.php';
-require_once 'utils/model.php';
+require_once 'model/data_access.php';
 
 if (!isset($_GET['id'])) {
     redirect('index.php');
