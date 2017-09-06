@@ -1,11 +1,15 @@
 <?php
 
+function sanitized_post($param, $default = '')
+{
+    return filter_var ( trim($_POST[$param] ?? $default), FILTER_SANITIZE_STRING);
+}
 
 // all params checks
 function get_form_params()
 {
     $is_ok = true;
-    $name = trim($_POST['name'] ?? '');
+    $name = sanitized_post('name');
     $name_len = strlen($name);
     $name_error = '';
 
@@ -19,7 +23,7 @@ function get_form_params()
         $is_ok = false;
     }
 
-    $price = $_POST['price'] ?? '';
+    $price = sanitized_post('price');
     $price_error = '';
 
     if (strlen($price) == 0) {
@@ -33,14 +37,17 @@ function get_form_params()
         $is_ok = false;
     }
 
+    $img = sanitized_post('img');
     $img_error = '';
-    if (strlen($_POST['img'] ?? '') > 1024) {
+
+    if (strlen($img) > 1024) {
         $img_error = 'Maximum length is 1024 symbols.';
         $is_ok = false;
     }
 
+    $description = sanitized_post('description');
     $description_error = '';
-    if (strlen($_POST['description'] ?? '') > 2048) {
+    if (strlen($description) > 2048) {
         $description_error = 'Maximum length is 2048 symbols.';
         $is_ok = false;
     }
@@ -53,9 +60,9 @@ function get_form_params()
         'name_error' => $name_error,
         'price' => $price,
         'price_error' => $price_error,
-        'img' => $_POST['img'] ?? '',
+        'img' => $img,
         'img_error' => $img_error,
-        'description' => $_POST['description'] ?? '',
+        'description' => $description,
         'description_error' => $description_error,
         'is_ok' => $is_ok
     );
