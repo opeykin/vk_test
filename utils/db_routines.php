@@ -41,7 +41,18 @@ function db_add_item($db, $item)
 function db_fetch_items($db, $sort_column, $sort_direction, $skip)
 {
     $page_size = Constants::PAGE_SIZE;
-    $result = mysqli_query($db, "SELECT * FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $page_size");
+
+    $query =
+     "SELECT l.id, l.img, l.name, l.price, l.description
+     FROM (
+            SELECT id
+            FROM items
+            ORDER BY $sort_column $sort_direction
+            LIMIT $skip, $page_size) r
+     JOIN items l ON l.id = r.id
+     ORDER BY l.$sort_column $sort_direction;";
+
+    $result = mysqli_query($db, $query);
     $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
     return $rows;
 }
