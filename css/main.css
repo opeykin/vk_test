@@ -168,13 +168,23 @@ textarea {
     padding: 6px 13px;
     border: 1px solid #ccc;
     border-radius: 3px;
+    min-width: 80px;
+    cursor: pointer;
+    text-align: center;
 }
 
 .button-blue {
     background: #0af;
-    color: #fff;
+    color: white;
     border-color: transparent;
 }
+
+.button-red {
+    background: #d23f31;
+    color: white;
+    border-color: transparent;
+}
+
 
 #page_navigation {
     text-align: center;
@@ -192,6 +202,43 @@ textarea {
 .no_underline {
     text-decoration: none;
 }
+
+.input-form {
+    width: 500px;
+    margin: 0px auto;
+}
+
+.required {
+    color: red;
+}
+
+.error {
+    color: red;
+}
+
+.input-form label {
+    font-weight:bold;
+    margin-top: 50px;
+}
+
+.input-form-section {
+    margin-top: 20px;
+}
+
+.field {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.text-filed {
+    width: 100%;
+    height: 150px;
+    margin: 0;
+    padding: 0;
+    background-position: 1;
+}
+
 
 
 

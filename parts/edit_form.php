@@ -1,27 +1,13 @@
-<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
-    Name:
-    <input name="name" <?php echo 'value="' . $params['name'] . '"'; ?>>
-    *
-    <span><?=$params['name_error']?></span>
-    <br>
+<form class="input-form" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
 
-    Price:
-    <input name="price"<?php echo 'value="' . $params['price'] . '"'; ?>>
-    *
-    <span><?=$params['price_error']?></span>
-    <br>
+    <?php
+    include 'form_fields.php';
+    ?>
 
-    Image url:
-    <input name="img"<?php echo 'value="' . $params['img'] . '"'; ?>>
-    <span><?=$params['img_error']?></span>
-    <br>
+    <input type="hidden" name="id" value="<?= $params['id'] ?>">
 
-    Description:
-    <input name="description"<?php echo 'value="' . $params['description'] . '"'; ?>>
-    <span><?=$params['description_error']?></span>
-    <br>
-
-    <input type="hidden" name="id" value="<?=$params['id']?>">
-
-    <input type="submit" value="Submit changes">
+    <div class="clearfix input-form-section">
+        <a href="<?='delete.php?id='.$params['id']?>" class="button button-red fl_l">Delete</a>
+        <input type="submit" class="button button-blue fl_r" value="Submit changes">
+    </div>
 </form>
