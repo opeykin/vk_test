@@ -71,14 +71,19 @@ function model_count()
     return $count;
 }
 
-function model_get_cache_key($sort_column, $sort_direction)
+function model_cache_page_key($sort_column, $sort_direction)
 {
     return "SELECT[$sort_column,$sort_direction]";
 }
 
-function model_drop_cache_by_column($sort_column, $sort_direction, $value)
+function model_cache_item_key($id)
 {
-    $key = model_get_cache_key($sort_column, $sort_direction);
+    return "ID[$id]";
+}
+
+function model_cache_drop_page($sort_column, $sort_direction, $value)
+{
+    $key = model_cache_page_key($sort_column, $sort_direction);
     $result = cache()->get($key);
 
     if ($result === false) {
@@ -96,12 +101,20 @@ function model_drop_cache_by_column($sort_column, $sort_direction, $value)
     }
 }
 
-function model_drop_cache($item)
+function model_cache_drop_single_item($id)
 {
-    model_drop_cache_by_column('id', 'ASC', $item['id']);
-    model_drop_cache_by_column('id', 'DESC', $item['id']);
-    model_drop_cache_by_column('price', 'ASC', $item['price']);
-    model_drop_cache_by_column('price', 'DESC', $item['price']);
+    $key = model_cache_item_key($id);
+    cache()->delete($key);
+}
+
+function model_cache_drop($item)
+{
+    model_cache_drop_page('id', 'ASC', $item['id']);
+    model_cache_drop_page('id', 'DESC', $item['id']);
+    model_cache_drop_page('price', 'ASC', $item['price']);
+    model_cache_drop_page('price', 'DESC', $item['price']);
+
+    model_cache_drop_single_item($item['id']);
 }
 
 function model_add_item($item)
@@ -109,7 +122,7 @@ function model_add_item($item)
     $result = db_add_item(db(), $item);
     if ($result) {
         cache()->increment('count');
-        model_drop_cache($item);
+        model_cache_drop($item);
     }
 
     return $result;
@@ -122,7 +135,7 @@ function model_delete_item($id)
 
     if ($result) {
         cache()->decrement('count');
-        model_drop_cache($item);
+        model_cache_drop($item);
     }
 
     return $result;
@@ -133,7 +146,7 @@ function model_update_item($item)
     $result = db_update_item(db(), $item);
 
     if ($result) {
-        model_drop_cache($item);
+        model_cache_drop($item);
     }
 
     return $result;
@@ -148,15 +161,35 @@ function model_fetch_items_page($sort_column, $sort_direction, $page)
         return db_fetch_items(db(), $sort_column, $sort_direction, $skip);
     }
 
-    $key = model_get_cache_key($sort_column, $sort_direction);
+    $key = model_cache_page_key($sort_column, $sort_direction);
     $cache = cache();
     $result = $cache->get($key);
 
-    if ($result !== false) {
+    if ($result) {
         return $result;
     }
 
     $result = db_fetch_items(db(), $sort_column, $sort_direction, $skip);
+    if ($result) {
+        $cache->set($key, $result, Constants::CACHE_EXPIRE_TIME);
+    }
+
+    return $result;
+}
+
+function model_fetch_item($id)
+{
+    $cache = cache();
+
+    $key = model_cache_item_key($id);
+    $result = $cache->get($key);
+
+    if ($result) {
+        return $result;
+    }
+
+    $result = db_fetch_item(db(), $id);
+
     if ($result) {
         $cache->set($key, $result, Constants::CACHE_EXPIRE_TIME);
     }

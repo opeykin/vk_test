@@ -1,14 +1,12 @@
 <?php
 
 
-require_once 'utils/db_routines.php';
 require_once 'utils/utils.php';
 require_once 'utils/model.php';
 
 $id = (int)$_GET['id'] ?? -1;
 
-$item = db_fetch_item(db(), $id);
-
+$item = model_fetch_item($id);
 
 if (!$item) {
     redirect('index.php');
