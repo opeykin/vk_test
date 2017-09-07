@@ -165,11 +165,15 @@ function model_update_item($item)
     return $result;
 }
 
+
+/*
+ * Fetch items. Caches first page for every sorting in memcached
+ * Will fetch Constants::PAGE_SIZE at max
+ */
 function model_fetch_items_page($sort_column, $sort_direction, $page)
 {
     $skip = $page * Constants::PAGE_SIZE;
 
-    // cache only first page for now
     if ($page !== 0) {
         return db_fetch_items(db(), $sort_column, $sort_direction, $skip);
     }
