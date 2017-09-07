@@ -9,7 +9,7 @@ include_once 'templates/header.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $params = array();
+    $params = empty_form_params();
     include_once 'parts/add_form.php';
 } else {
 

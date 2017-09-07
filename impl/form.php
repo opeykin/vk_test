@@ -76,7 +76,9 @@ function empty_form_params() {
         'price' => '',
         'price_error' => '',
         'img' => '',
+        'img_error' => '',
         'description' => '',
+        'description_error' => '',
         'is_ok' => true
     );
 }
