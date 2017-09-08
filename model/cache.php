@@ -83,6 +83,9 @@ function cache_on_items_fetch($items) {
     $cache = cache();
     foreach ($items as $item) {
         $key = cache_item_key($item['id']);
+
+        // TODO: should probably CAS here. In theory - item can be updated
+        // between db fetch and cache write.
         $cache->set($key, $item, CacheExpireTime::ITEM);
     }
 }
