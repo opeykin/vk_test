@@ -36,23 +36,45 @@ function db_add_item($db, $item)
     return true;
 }
 
-function db_fetch_items($db, $sort_column, $sort_direction, $skip)
+function fetch_all($db, $query, $result_type = MYSQLI_ASSOC)
 {
-    $page_size = Constants::PAGE_SIZE;
-
-    $query =
-     "SELECT l.id, l.img, l.name, l.price, l.description
-     FROM (
-            SELECT id
-            FROM items
-            ORDER BY $sort_column $sort_direction
-            LIMIT $skip, $page_size) r
-     JOIN items l ON l.id = r.id
-     ORDER BY l.$sort_column $sort_direction;";
-
     $result = mysqli_query($db, $query);
-    $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    return $rows;
+
+    if ($result)
+        return mysqli_fetch_all($result, $result_type);
+    else
+        return false;
+}
+
+function flatten_single($array)
+{
+    if ($array === false)
+        return false;
+
+    $result = array();
+
+    foreach ($array as $elem) {
+        $result[] = $elem[0];
+    }
+
+    return $result;
+}
+
+function db_fetch_ids($db, $sort_column, $sort_direction, $skip, $count)
+{
+    $query = "SELECT id FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $count";
+    $ids =  fetch_all($db, $query, MYSQLI_NUM);
+    return flatten_single($ids);
+}
+
+function db_fetch_items($db, $ids)
+{
+    if (empty($ids))
+        return array();
+
+    $ids_str = join(',', $ids);
+    $query = "SELECT * FROM items WHERE id IN ($ids_str)";
+    return fetch_all($db, $query);
 }
 
 function db_fetch_item($db, $id)

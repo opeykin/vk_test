@@ -50,9 +50,9 @@ class Connections {
 
 class CacheExpireTime
 {
-    const COUNT = 60;
+    const COUNT = 300;
     const PAGE = 60;
-    const ITEM = 10;
+    const ITEM = 60;
 }
 
 function db()
@@ -85,7 +85,7 @@ function model_cache_page_key($sort_column, $sort_direction)
 
 function model_cache_item_key($id)
 {
-    return "ID[$id]";
+    return $id;
 }
 
 function model_cache_drop_page($sort_column, $sort_direction, $value)
@@ -116,12 +116,20 @@ function model_cache_drop_single_item($id)
 
 function model_cache_drop($item)
 {
-    model_cache_drop_page('id', 'ASC', $item['id']);
-    model_cache_drop_page('id', 'DESC', $item['id']);
-    model_cache_drop_page('price', 'ASC', $item['price']);
-    model_cache_drop_page('price', 'DESC', $item['price']);
+//    model_cache_drop_page('id', 'ASC', $item['id']);
+//    model_cache_drop_page('id', 'DESC', $item['id']);
+//    model_cache_drop_page('price', 'ASC', $item['price']);
+//    model_cache_drop_page('price', 'DESC', $item['price']);
 
     model_cache_drop_single_item($item['id']);
+}
+
+function cache_add_items($items) {
+    $cache = cache();
+    foreach ($items as $item) {
+        $key = model_cache_item_key($item['id']);
+        $cache->set($key, $item, CacheExpireTime::ITEM);
+    }
 }
 
 function model_add_item($item)
@@ -165,33 +173,82 @@ function model_update_item($item)
     return $result;
 }
 
+function keys_not_from_array($array, $keys)
+{
+    $result = array();
+
+    foreach ($keys as $key) {
+        if (!array_key_exists($key, $array)) {
+            $result[] = $key;
+        }
+    }
+
+    return $result;
+}
+
+function get_values_from_either_array_in_order($keys, $array1, $array2)
+{
+    $result = array();
+
+    foreach ($keys as $key) {
+        if (array_key_exists($key, $array1))
+            $result[] =  $array1[$key];
+        else
+            $result[] =  $array2[$key];
+    }
+
+    return $result;
+}
+
+function add_in_id_order(&$array, $id_to_position, $items)
+{
+    foreach ($items as $item) {
+        $id = $item['id'];
+        $position = $id_to_position[$id];
+        $array[$position] = $item;
+    }
+}
 
 /*
- * Fetch items. Caches first page for every sorting in memcached
- * Will fetch Constants::PAGE_SIZE at max
- */
+ * Some items are fetched from cache, some from db. Order is lost.
+ * Combine two arrays correct id order
+*/
+function combine_items($ids, $items_from_cache, $items_from_db)
+{
+    $result = array_fill(0, count($ids), 0);
+    $id_to_position = array_flip($ids);
+
+    add_in_id_order($result, $id_to_position, $items_from_cache);
+    add_in_id_order($result, $id_to_position, $items_from_db);
+
+    return $result;
+}
+
+function model_fetch_items($ids)
+{
+    $keys = array_map("model_cache_item_key", $ids);
+    $items_from_cache = cache()->getMulti($keys);
+    $uncached_ids = keys_not_from_array($items_from_cache, $ids);
+    $items_from_db = db_fetch_items(db(), $uncached_ids);
+
+    if ($items_from_db === false)
+        return false;
+
+    cache_add_items($items_from_db);
+
+    return combine_items($ids, array_values($items_from_cache), $items_from_db);
+}
+
 function model_fetch_items_page($sort_column, $sort_direction, $page)
 {
     $skip = $page * Constants::PAGE_SIZE;
 
-    if ($page !== 0) {
-        return db_fetch_items(db(), $sort_column, $sort_direction, $skip);
-    }
+    $ids = db_fetch_ids(db(), $sort_column, $sort_direction, $skip, Constants::PAGE_SIZE);
 
-    $key = model_cache_page_key($sort_column, $sort_direction);
-    $cache = cache();
-    $result = $cache->get($key);
+    if (!$ids)
+        return false;
 
-    if ($result) {
-        return $result;
-    }
-
-    $result = db_fetch_items(db(), $sort_column, $sort_direction, $skip);
-    if ($result) {
-        $cache->set($key, $result, CacheExpireTime::PAGE);
-    }
-
-    return $result;
+    return model_fetch_items($ids);
 }
 
 function model_fetch_item($id)
