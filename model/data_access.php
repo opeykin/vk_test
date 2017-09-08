@@ -2,57 +2,8 @@
 
 require_once 'db_routines.php';
 require_once 'utils/utils.php';
+require_once 'cache.php';
 
-function model_get_cache($config)
-{
-    $cache = new Memcached();
-    $cache->addServer($config['memcached_host'], $config['memcached_port']);
-    return $cache;
-}
-
-class Connections {
-    private static $db_instance;
-    private static $cache_instance;
-
-    private function __construct() {
-    }
-
-    public static function getDbInstance() {
-        if (self::$db_instance === null) {
-            self::$db_instance = db_connect(config());
-        }
-
-        return self::$db_instance;
-    }
-
-    public static function getCacheInstance() {
-        if (self::$cache_instance === null) {
-            $config = config();
-            self::$cache_instance = new Memcached();
-            self::$cache_instance->addServer($config['memcached_host'], $config['memcached_port']);
-        }
-
-        return self::$cache_instance;
-    }
-
-    private function __clone() {
-    }
-
-    private function __wakeup() {
-    }
-}
-
-class CacheExpireTime
-{
-    const COUNT = 60;
-    const PAGE = 60;
-    const ITEM = 60;
-}
-
-function cache()
-{
-    return Connections::getCacheInstance();
-}
 
 function model_count()
 {
@@ -67,78 +18,6 @@ function model_count()
     return $count;
 }
 
-function model_cache_page_key($sort_column, $sort_direction)
-{
-    return "SELECT[$sort_column,$sort_direction]";
-}
-
-function model_cache_item_key($id)
-{
-    return $id;
-}
-
-function cache_paging_key($sort_column, $sort_direction, $page, $version)
-{
-    // TODO: Too long key. apply md5 or something.
-    return "PAGING[$sort_column,$sort_direction,$page,$version]";
-}
-
-function model_cache_drop_page($sort_column, $sort_direction, $value)
-{
-    $key = model_cache_page_key($sort_column, $sort_direction);
-    $result = cache()->get($key);
-
-    if ($result === false) {
-        return;
-    }
-
-    $first_value = $result[0][$sort_column];
-    $last_value = $result[count($result) - 1][$sort_column];
-
-    $min_value = min($first_value, $last_value);
-    $max_value = max($first_value, $last_value);
-
-    if ($min_value <= $value && $value <= $max_value) {
-        cache()->delete($key);
-    }
-}
-
-function cache_drop_item($id)
-{
-    cache()->delete(model_cache_item_key($id));
-}
-
-function cache_drop_paging()
-{
-    cache()->increment('paging_version');
-}
-
-function cache_on_item_add()
-{
-    cache()->increment('count');
-    cache_drop_paging();
-}
-
-function cache_on_item_delete($id)
-{
-    cache()->decrement('count');
-    cache_drop_item($id);
-    cache_drop_paging();
-}
-
-function cache_on_item_update($id)
-{
-    cache_drop_item($id);
-}
-
-
-function cache_on_items_fetch($items) {
-    $cache = cache();
-    foreach ($items as $item) {
-        $key = model_cache_item_key($item['id']);
-        $cache->set($key, $item, CacheExpireTime::ITEM);
-    }
-}
 
 function model_add_item($item)
 {
@@ -229,7 +108,7 @@ function combine_items($ids, $items_from_cache, $items_from_db)
 
 function model_fetch_items($ids)
 {
-    $keys = array_map("model_cache_item_key", $ids);
+    $keys = array_map("cache_item_key", $ids);
     $items_from_cache = cache()->getMulti($keys);
     $uncached_ids = keys_not_from_array($items_from_cache, $ids);
     $items_from_db = db_fetch_items(db(), $uncached_ids);
@@ -285,7 +164,7 @@ function model_fetch_item($id)
 {
     $cache = cache();
 
-    $key = model_cache_item_key($id);
+    $key = cache_item_key($id);
     $result = $cache->get($key);
 
     if ($result) {
