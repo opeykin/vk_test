@@ -20,7 +20,7 @@ class DbSingleton {
     private function __construct() {
     }
 
-    public static function getDbInstance() {
+    public static function getInstance() {
         if (self::$db_instance === null) {
             self::$db_instance = db_connect(config());
         }
@@ -37,7 +37,7 @@ class DbSingleton {
 
 function db()
 {
-    return Connections::getDbInstance();
+    return DbSingleton::getInstance();
 }
 
 class Constants
