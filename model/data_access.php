@@ -50,7 +50,7 @@ class Connections {
 
 class CacheExpireTime
 {
-    const COUNT = 300;
+    const COUNT = 60;
     const PAGE = 60;
     const ITEM = 60;
 }
@@ -88,6 +88,12 @@ function model_cache_item_key($id)
     return $id;
 }
 
+function cache_paging_key($sort_column, $sort_direction, $page, $version)
+{
+    // TODO: Too long key. apply md5 or something.
+    return "PAGING[$sort_column,$sort_direction,$page,$version]";
+}
+
 function model_cache_drop_page($sort_column, $sort_direction, $value)
 {
     $key = model_cache_page_key($sort_column, $sort_direction);
@@ -108,23 +114,36 @@ function model_cache_drop_page($sort_column, $sort_direction, $value)
     }
 }
 
-function model_cache_drop_single_item($id)
+function cache_drop_item($id)
 {
-    $key = model_cache_item_key($id);
-    cache()->delete($key);
+    cache()->delete(model_cache_item_key($id));
 }
 
-function model_cache_drop($item)
+function cache_drop_paging()
 {
-//    model_cache_drop_page('id', 'ASC', $item['id']);
-//    model_cache_drop_page('id', 'DESC', $item['id']);
-//    model_cache_drop_page('price', 'ASC', $item['price']);
-//    model_cache_drop_page('price', 'DESC', $item['price']);
-
-    model_cache_drop_single_item($item['id']);
+    cache()->increment('paging_version');
 }
 
-function cache_add_items($items) {
+function cache_on_item_add()
+{
+    cache()->increment('count');
+    cache_drop_paging();
+}
+
+function cache_on_item_delete($id)
+{
+    cache()->decrement('count');
+    cache_drop_item($id);
+    cache_drop_paging();
+}
+
+function cache_on_item_update($id)
+{
+    cache_drop_item($id);
+}
+
+
+function cache_on_items_fetch($items) {
     $cache = cache();
     foreach ($items as $item) {
         $key = model_cache_item_key($item['id']);
@@ -139,24 +158,19 @@ function model_add_item($item)
         return false;
 
     $id = db_get_last_inserted_id(db());
-    if ($id !== false) {
-        $item['id'] = $id;
-    }
+    $item['id'] = $id;
 
-    cache()->increment('count');
-    model_cache_drop($item);
+    cache_on_item_add();
 
     return $id;
 }
 
 function model_delete_item($id)
 {
-    $item = db_fetch_item(db(), $id);
     $result = db_delete_item(db(), $id);
 
     if ($result) {
-        cache()->decrement('count');
-        model_cache_drop($item);
+        cache_on_item_delete($id);
     }
 
     return $result;
@@ -167,7 +181,7 @@ function model_update_item($item)
     $result = db_update_item(db(), $item);
 
     if ($result) {
-        model_cache_drop($item);
+        cache_on_item_update($item['id']);
     }
 
     return $result;
@@ -234,16 +248,43 @@ function model_fetch_items($ids)
     if ($items_from_db === false)
         return false;
 
-    cache_add_items($items_from_db);
+    cache_on_items_fetch($items_from_db);
 
     return combine_items($ids, array_values($items_from_cache), $items_from_db);
 }
 
+function cache_init_paging($cache, $key, &$value)
+{
+    $value = 1;
+    return true;
+}
+
+function model_fetch_ids($sort_column, $sort_direction, $page)
+{
+    $paging_version = cache()->get('paging_version', 'cache_init_paging');
+
+    if ($paging_version == false)
+        return false;
+
+    $key = cache_paging_key($sort_column, $sort_direction, $page, $paging_version);
+    $ids_from_cache = cache()->get($key);
+
+    if ($ids_from_cache !== false) {
+        return $ids_from_cache;
+    }
+
+    $ids_from_db = db_fetch_ids(db(), $sort_column, $sort_direction, $page);
+
+    if ($ids_from_db !== false) {
+        cache()->set($key, $ids_from_db, CacheExpireTime::PAGE);
+    }
+
+    return $ids_from_db;
+}
+
 function model_fetch_items_page($sort_column, $sort_direction, $page)
 {
-    $skip = $page * Constants::PAGE_SIZE;
-
-    $ids = db_fetch_ids(db(), $sort_column, $sort_direction, $skip, Constants::PAGE_SIZE);
+    $ids = model_fetch_ids($sort_column, $sort_direction, $page);
 
     if (!$ids)
         return false;

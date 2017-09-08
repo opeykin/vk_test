@@ -60,8 +60,11 @@ function flatten_single($array)
     return $result;
 }
 
-function db_fetch_ids($db, $sort_column, $sort_direction, $skip, $count)
+function db_fetch_ids($db, $sort_column, $sort_direction, $page)
 {
+    $count = Constants::PAGE_SIZE;
+    $skip = $page * Constants::PAGE_SIZE;
+
     $query = "SELECT id FROM items ORDER BY $sort_column $sort_direction LIMIT $skip, $count";
     $ids =  fetch_all($db, $query, MYSQLI_NUM);
     return flatten_single($ids);
