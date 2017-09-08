@@ -1,9 +1,7 @@
 <?php
 
-class Constants
-{
-    const PAGE_SIZE = 50;
-}
+require_once 'utils/utils.php';
+
 
 function db_connect($config)
 {
@@ -15,6 +13,39 @@ function db_connect($config)
 
     return $db;
 }
+
+class DbSingleton {
+    private static $db_instance;
+
+    private function __construct() {
+    }
+
+    public static function getDbInstance() {
+        if (self::$db_instance === null) {
+            self::$db_instance = db_connect(config());
+        }
+
+        return self::$db_instance;
+    }
+
+    private function __clone() {
+    }
+
+    private function __wakeup() {
+    }
+}
+
+function db()
+{
+    return Connections::getDbInstance();
+}
+
+class Constants
+{
+    const PAGE_SIZE = 50;
+}
+
+
 
 function db_get_last_inserted_id($db) {
     $result = mysqli_query($db, 'SELECT @id := LAST_INSERT_ID();');

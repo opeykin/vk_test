@@ -49,11 +49,6 @@ class CacheExpireTime
     const ITEM = 60;
 }
 
-function db()
-{
-    return Connections::getDbInstance();
-}
-
 function cache()
 {
     return Connections::getCacheInstance();
