@@ -1,6 +1,7 @@
 <?php
 
 require_once 'db_routines.php';
+require_once 'utils/utils.php';
 
 function model_get_cache($config)
 {
@@ -11,23 +12,14 @@ function model_get_cache($config)
 
 class Connections {
     private static $db_instance;
-    private static $config_instance;
     private static $cache_instance;
 
     private function __construct() {
     }
 
-    public static function getConfigInstance() {
-        if (self::$config_instance === null) {
-            self::$config_instance = parse_ini_file('connection.cfg');
-        }
-
-        return self::$config_instance;
-    }
-
     public static function getDbInstance() {
         if (self::$db_instance === null) {
-            self::$db_instance = db_connect(self::getConfigInstance());
+            self::$db_instance = db_connect(config());
         }
 
         return self::$db_instance;
@@ -35,7 +27,9 @@ class Connections {
 
     public static function getCacheInstance() {
         if (self::$cache_instance === null) {
-            self::$cache_instance = model_get_cache(self::getConfigInstance());
+            $config = config();
+            self::$cache_instance = new Memcached();
+            self::$cache_instance->addServer($config['memcached_host'], $config['memcached_port']);
         }
 
         return self::$cache_instance;
