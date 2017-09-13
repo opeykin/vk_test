@@ -136,20 +136,21 @@ function model_fetch_ids($sort_column, $sort_direction, $page)
     if ($paging_version == false)
         return false;
 
-    $key = cache_paging_key($sort_column, $sort_direction, $page, $paging_version);
-    $ids_from_cache = cache()->get($key);
+    $cache_key = cache_paging_key($sort_column, $sort_direction, $page, $paging_version);
+    $lock_key = cache_lock_key($cache_key);
 
-    if ($ids_from_cache !== false) {
-        return $ids_from_cache;
-    }
+    $cache_save = function ($data) use ($cache_key) {
+        cache()->set($cache_key, $data, CacheExpireTime::PAGE);
+    };
 
-    $ids_from_db = db_fetch_ids(db(), $sort_column, $sort_direction, $page);
+    $db_fetch = function () use($sort_column, $sort_direction, $page) {
+        $count = Constants::PAGE_SIZE;
+        $skip = $page * Constants::PAGE_SIZE;
+        db_fetch_ids(db(), $sort_column, $sort_direction, $skip, $count);
+        return db_fetch_items_count(db());
+    };
 
-    if ($ids_from_db !== false) {
-        cache()->set($key, $ids_from_db, CacheExpireTime::PAGE);
-    }
-
-    return $ids_from_db;
+    return model_fetch_with_cache_locks($cache_key, $lock_key, $cache_save, $db_fetch);
 }
 
 function model_fetch_items_page($sort_column, $sort_direction, $page)
