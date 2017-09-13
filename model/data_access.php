@@ -123,34 +123,34 @@ function model_fetch_items($ids)
     return combine_items($ids, array_values($items_from_cache), $items_from_db);
 }
 
-function cache_init_paging($cache, $key, &$value)
-{
-    $value = 1;
-    return true;
-}
-
 function model_fetch_ids($sort_column, $sort_direction, $page)
 {
-    $paging_version = cache()->get('paging_version', 'cache_init_paging');
+    $version = cache()->get('paging_version', 'cache_init_paging');
 
-    if ($paging_version == false)
+    if ($version == false)
         return false;
 
-    $cache_key = cache_paging_key($sort_column, $sort_direction, $page, $paging_version);
+    $cache_key = cache_page_key($sort_column, $sort_direction, $page, $version);
     $lock_key = cache_lock_key($cache_key);
 
-    $cache_save = function ($data) use ($cache_key) {
-        cache()->set($cache_key, $data, CacheExpireTime::PAGE);
+    $first_fetch_page = intdiv($page, PagingConstants::PAGE_FETCH_COUNT);
+
+    $cache_save = function ($ids) use ($first_fetch_page, $sort_column, $sort_direction, $version) {
+        cache_save_pages($first_fetch_page, $sort_column, $sort_direction, $version, $ids);
     };
 
-    $db_fetch = function () use($sort_column, $sort_direction, $page) {
-        $count = Constants::PAGE_SIZE;
-        $skip = $page * Constants::PAGE_SIZE;
-        db_fetch_ids(db(), $sort_column, $sort_direction, $skip, $count);
-        return db_fetch_items_count(db());
+    $db_fetch = function () use($sort_column, $sort_direction, $first_fetch_page) {
+        $skip = $first_fetch_page * PagingConstants::PAGE_SIZE;
+        $count = PagingConstants::PAGE_FETCH_COUNT * PagingConstants::PAGE_SIZE;
+        return db_fetch_ids(db(), $sort_column, $sort_direction, $skip, $count);
     };
 
-    return model_fetch_with_cache_locks($cache_key, $lock_key, $cache_save, $db_fetch);
+    $db_return_result_transform = function ($ids) use ($first_fetch_page, $page) {
+        $offset = ($page - $first_fetch_page) * PagingConstants::PAGE_SIZE;
+        return array_slice($ids, $offset, PagingConstants::PAGE_SIZE);
+    };
+
+    return model_fetch_with_cache_locks($cache_key, $lock_key, $cache_save, $db_fetch, $db_return_result_transform);
 }
 
 function model_fetch_items_page($sort_column, $sort_direction, $page)
@@ -169,10 +169,10 @@ function model_fetch_items_page($sort_column, $sort_direction, $page)
  * @param string $lock_key cache locking record key
  * @param callable $cache_save_cb callback to save data fetched from database to cache
  * @param callable $db_fetch_cb callback to fetch data from database
- * @param callable|null $db_result_transform [optional] transform applied to data fetched from db before return
+ * @param callable|null $db_return_result_transform [optional] transform applied to data fetched from db before return
  * @return bool|mixed the value stored in the cache or $db_result(data_fetched_from_db) or FALSE otherwise
  */
-function model_fetch_with_cache_locks($cache_key, $lock_key, callable $cache_save_cb, callable $db_fetch_cb, callable $db_result_transform = null)
+function model_fetch_with_cache_locks($cache_key, $lock_key, callable $cache_save_cb, callable $db_fetch_cb, callable $db_return_result_transform = null)
 {
     $cache = cache();
     $cache_result = cache_fetch_or_lock($cache_key, $lock_key, $lock_result);
@@ -188,7 +188,10 @@ function model_fetch_with_cache_locks($cache_key, $lock_key, callable $cache_sav
         $cache->delete($lock_key);
     }
 
-    return $db_result;
+    if ($db_return_result_transform)
+        return $db_return_result_transform($db_result);
+    else
+        return $db_result;
 }
 
 function model_fetch_item($id)

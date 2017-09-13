@@ -2,9 +2,9 @@
 
 class CacheExpireTime
 {
-    const COUNT = 60;
-    const PAGE = 60;
-    const ITEM = 60;
+    const COUNT = 300;
+    const PAGE = 300;
+    const ITEM = 300;
     const LOCK = 1;
 }
 
@@ -12,6 +12,12 @@ class CacheConstants
 {
     const CACHE_LOCK_RETRY_COUNT = 5;
     const CACHE_LOCK_RETRY_DELAY_MS = 100000;
+}
+
+class PagingConstants
+{
+    const PAGE_SIZE = 50;
+    const PAGE_FETCH_COUNT = 500;
 }
 
 class CacheSingleton {
@@ -42,11 +48,6 @@ function cache()
     return CacheSingleton::getInstance();
 }
 
-function cache_page_key($sort_column, $sort_direction)
-{
-    return "SELECT[$sort_column,$sort_direction]";
-}
-
 function cache_item_key($id)
 {
     return $id;
@@ -57,10 +58,10 @@ function cache_lock_key($cache_key)
     return "LOCK[$cache_key]";
 }
 
-function cache_paging_key($sort_column, $sort_direction, $page, $version)
+function cache_page_key($sort_column, $sort_direction, $page, $version)
 {
     // TODO: Too long key. apply md5 or something.
-    return "PAGING[$sort_column,$sort_direction,$page,$version]";
+    return "PAGE[$sort_column,$sort_direction,$page,$version]";
 }
 
 function cache_drop_item($id)
@@ -127,6 +128,27 @@ function cache_fetch_or_lock($cache_key, $lock_key, &$lock_result)
     }
 
     return false;
+}
+
+function cache_init_paging($cache, $key, &$value)
+{
+    $value = 1;
+    return true;
+}
+
+function cache_save_pages($first_fetch_page, $sort_column, $sort_direction, $version, $ids)
+{
+    $items = array();
+    $array_size = count($ids);
+
+    for ($offset = 0; $offset < $array_size; $offset += PagingConstants::PAGE_SIZE) {
+        $page_ids = array_slice($ids, $offset, PagingConstants::PAGE_SIZE);
+        $page = $first_fetch_page + intdiv($offset, PagingConstants::PAGE_SIZE);
+        $key = cache_page_key($sort_column, $sort_direction, $page, $version);
+        $items[$key] = $page_ids;
+    }
+
+    cache()->setMulti($items, CacheExpireTime::PAGE);
 }
 
 

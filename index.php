@@ -14,7 +14,7 @@ if ($params == null) {
 }
 
 $items_count = model_count();
-$page_count = (int)($items_count / Constants::PAGE_SIZE + 1);
+$page_count = (int)($items_count / PagingConstants::PAGE_SIZE + 1);
 $page = $params['page'];
 
 if ($page >= $page_count) {

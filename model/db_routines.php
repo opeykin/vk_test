@@ -40,13 +40,6 @@ function db()
     return DbSingleton::getInstance();
 }
 
-class Constants
-{
-    const PAGE_SIZE = 50;
-}
-
-
-
 function db_get_last_inserted_id($db) {
     $result = mysqli_query($db, 'SELECT @id := LAST_INSERT_ID();');
     return $result ? mysqli_fetch_row($result)[0] : false;
