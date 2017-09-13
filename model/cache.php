@@ -8,6 +8,12 @@ class CacheExpireTime
     const LOCK = 1;
 }
 
+class CacheConstants
+{
+    const CACHE_LOCK_RETRY_COUNT = 5;
+    const CACHE_LOCK_RETRY_DELAY_MS = 100000;
+}
+
 class CacheSingleton {
     private static $cache_instance;
 
@@ -96,15 +102,13 @@ function cache_on_items_fetch($items) {
  * @param string $cache_key cache record key
  * @param string $lock_key cache locking record key
  * @param bool $lock_result reference. TRUE is locked, FALSE - otherwise
- * @param int $max_lock_attempts [optional] how many time should try to lock record
- * @param int $sleep_time_ms [optional] sleep time in milliseconds between lock attempts
  * @return bool|mixed the value stored in the cache or FALSE otherwise
  */
-function cache_fetch_or_lock($cache_key, $lock_key, &$lock_result, $max_lock_attempts = 5, $sleep_time_ms = 100000)
+function cache_fetch_or_lock($cache_key, $lock_key, &$lock_result)
 {
     $cache = cache();
 
-    for ($i = 0; $i < $max_lock_attempts; $i++) {
+    for ($i = 0; $i < CacheConstants::CACHE_LOCK_RETRY_COUNT; $i++) {
 
         $cache_result = $cache->get($cache_key);
         if ($cache_result)
@@ -114,7 +118,7 @@ function cache_fetch_or_lock($cache_key, $lock_key, &$lock_result, $max_lock_att
         if ($lock_result)
             return false;
 
-        usleep($sleep_time_ms);
+        usleep(CacheConstants::CACHE_LOCK_RETRY_DELAY_MS);
     }
 
     return false;
