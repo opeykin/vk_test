@@ -52,6 +52,11 @@ function cache_item_key($id)
     return $id;
 }
 
+function cache_lock_key($cache_key)
+{
+    return "LOCK[$cache_key]";
+}
+
 function cache_paging_key($sort_column, $sort_direction, $page, $version)
 {
     // TODO: Too long key. apply md5 or something.
