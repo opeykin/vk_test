@@ -160,23 +160,48 @@ function model_fetch_items_page($sort_column, $sort_direction, $page)
     return model_fetch_items($ids);
 }
 
-function model_fetch_item($id)
+/**
+ * Fetching data with read through caching and cache locking to protect against stampeding herd problem.
+ * @param string $cache_key cache record key
+ * @param string $lock_key cache locking record key
+ * @param $db_fetch_cb callback to fetch data from database
+ * @param callable|null $cache_save_cb [optional] callback to manually save data fetched from database to cache
+ * @param callable|null $db_result_transform [optional] transform applied to data fetched from db before return
+ * @return bool|mixed the value stored in the cache or $db_result(data_fetched_from_db) or FALSE otherwise
+ */
+function model_fetch_with_cache_locks($cache_key, $lock_key, $db_fetch_cb, callable $cache_save_cb = null, callable $db_result_transform = null)
 {
     $cache = cache();
+    $cache_result = cache_fetch_or_lock($cache_key, $lock_key, $lock_result);
 
-    $key = cache_item_key($id);
-    $result = $cache->get($key);
+    if ($cache_result !== false)
+        return $cache_result;
 
-    if ($result) {
-        return $result;
+    $db_result = $db_fetch_cb();
+
+    if ($lock_result) {
+        if ($db_result) {
+            if ($cache_save_cb) {
+                $cache_save_cb($db_result);
+            } else {
+                $cache->set($cache_key, $db_result, CacheExpireTime::ITEM);
+            }
+        }
+        $cache->delete($lock_key);
     }
 
-    $result = db_fetch_item(db(), $id);
+    return $db_result;
+}
 
-    if ($result) {
-        $cache->set($key, $result, CacheExpireTime::ITEM);
-    }
+function model_fetch_item($id)
+{
+    $cache_key = cache_item_key($id);
+    $lock_key = "LOCK[$cache_key]";
 
-    return $result;
+    $db_fetch = function () use ($id) {
+        return db_fetch_item(db(), $id);
+    };
+
+    return model_fetch_with_cache_locks($cache_key, $lock_key, $db_fetch);
 }
 

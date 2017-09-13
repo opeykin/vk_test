@@ -5,6 +5,7 @@ class CacheExpireTime
     const COUNT = 60;
     const PAGE = 60;
     const ITEM = 60;
+    const LOCK = 1;
 }
 
 class CacheSingleton {
@@ -88,6 +89,35 @@ function cache_on_items_fetch($items) {
         // between db fetch and cache write.
         $cache->set($key, $item, CacheExpireTime::ITEM);
     }
+}
+
+/**
+ * Fetch a record from cache of lock the record for db fetching
+ * @param string $cache_key cache record key
+ * @param string $lock_key cache locking record key
+ * @param bool $lock_result reference. TRUE is locked, FALSE - otherwise
+ * @param int $max_lock_attempts [optional] how many time should try to lock record
+ * @param int $sleep_time_ms [optional] sleep time in milliseconds between lock attempts
+ * @return bool|mixed the value stored in the cache or FALSE otherwise
+ */
+function cache_fetch_or_lock($cache_key, $lock_key, &$lock_result, $max_lock_attempts = 5, $sleep_time_ms = 100000)
+{
+    $cache = cache();
+
+    for ($i = 0; $i < $max_lock_attempts; $i++) {
+
+        $cache_result = $cache->get($cache_key);
+        if ($cache_result)
+            return $cache_result;
+
+        $lock_result = $cache->add($lock_key, true, CacheExpireTime::LOCK);
+        if ($lock_result)
+            return false;
+
+        usleep($sleep_time_ms);
+    }
+
+    return false;
 }
 
 
