@@ -1,5 +1,7 @@
 <?php
 
+require_once 'utils/utils.php';
+
 class CacheExpireTime
 {
     const COUNT = 300;
@@ -50,12 +52,19 @@ function cache()
 
 function cache_item_key($id)
 {
-    return $id;
+    return "ITEM[$id]";
 }
 
 function cache_lock_key($cache_key)
 {
     return "LOCK[$cache_key]";
+}
+
+function cache_lock_key_multi(array $cache_keys)
+{
+    sort($cache_keys);
+    $keys_md5 = md5(join('', $cache_keys));
+    return "LOCK_MULTI[$keys_md5]";
 }
 
 function cache_page_key($sort_column, $sort_direction, $page, $version)
@@ -90,6 +99,7 @@ function cache_on_item_delete($id)
 function cache_on_item_update($id)
 {
     cache_drop_item($id);
+    cache_drop_paging();
 }
 
 function cache_on_items_fetch($items) {
@@ -128,6 +138,39 @@ function cache_fetch_or_lock($cache_key, $lock_key, &$lock_result)
     }
 
     return false;
+}
+
+/**
+ * Fetch a record from cache of lock the record for db fetching
+ * @param array $cache_keys cache record keys
+ * @param string $lock_key cache locking record key
+ * @param bool $lock_result reference. TRUE is locked, FALSE - otherwise
+ * @return array of items fetched from cache. In case of error returns empty array
+ */
+function cache_fetch_multi_or_lock(array $cache_keys, $lock_key, &$lock_result)
+{
+    $cache = cache();
+    $cached_elements = array();
+    $cache_keys_to_fetch = $cache_keys;
+
+    for ($i = 0; $i < CacheConstants::CACHE_LOCK_RETRY_COUNT; $i++) {
+
+        $get_result = $cache->getMulti($cache_keys_to_fetch);
+        if ($get_result) {
+            $cache_keys_to_fetch = keys_not_from_array($get_result, $cache_keys);
+            $cached_elements = array_merge($cached_elements, $get_result);
+            if (count($cache_keys_to_fetch) == 0)
+                return $cached_elements;
+        }
+
+        $lock_result = $cache->add($lock_key, true, CacheExpireTime::LOCK);
+        if ($lock_result)
+            break;
+
+        usleep(CacheConstants::CACHE_LOCK_RETRY_DELAY_MS);
+    }
+
+    return $cached_elements;
 }
 
 function cache_init_paging($cache, $key, &$value)

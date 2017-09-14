@@ -57,19 +57,6 @@ function model_update_item($item)
     return $result;
 }
 
-function keys_not_from_array($array, $keys)
-{
-    $result = array();
-
-    foreach ($keys as $key) {
-        if (!array_key_exists($key, $array)) {
-            $result[] = $key;
-        }
-    }
-
-    return $result;
-}
-
 function get_values_from_either_array_in_order($keys, $array1, $array2)
 {
     $result = array();
@@ -110,17 +97,36 @@ function combine_items($ids, $items_from_cache, $items_from_db)
 
 function model_fetch_items($ids)
 {
-    $keys = array_map("cache_item_key", $ids);
-    $items_from_cache = cache()->getMulti($keys);
-    $uncached_ids = keys_not_from_array($items_from_cache, $ids);
-    $items_from_db = db_fetch_items(db(), $uncached_ids);
+    $cache_keys = array_map("cache_item_key", $ids);
+    $lock_key = cache_lock_key_multi($cache_keys);
 
-    if ($items_from_db === false)
-        return false;
+    $cache_key_to_id = array_combine($cache_keys, $ids);
 
-    cache_on_items_fetch($items_from_db);
+    $cache_save = function ($items) {
+        $data_with_keys = array();
 
-    return combine_items($ids, array_values($items_from_cache), $items_from_db);
+        foreach ($items as $item) {
+            $key = cache_item_key($item['id']);
+            $data_with_keys[$key] = $item;
+        }
+
+        cache()->setMulti($data_with_keys, CacheExpireTime::ITEM);
+    };
+
+    $db_fetch = function ($uncached_item_keys) use($cache_key_to_id) {
+        $uncached_item_ids = array();
+
+        foreach ($uncached_item_keys as $uncached_item_key)
+            $uncached_item_ids[] = $cache_key_to_id[$uncached_item_key];
+
+        return db_fetch_items(db(), $uncached_item_ids);
+    };
+
+    $combine = function ($items_from_cache, $items_from_db) use ($ids) {
+        return combine_items($ids, $items_from_cache, $items_from_db);
+    };
+
+    return model_fetch_multi_with_cache_locks($cache_keys, $lock_key, $cache_save, $db_fetch, $combine);
 }
 
 function model_fetch_ids($sort_column, $sort_direction, $page)
@@ -192,6 +198,39 @@ function model_fetch_with_cache_locks($cache_key, $lock_key, callable $cache_sav
         return $db_return_result_transform($db_result);
     else
         return $db_result;
+}
+
+/**
+ * Fetching data multi key data with read through caching and cache locking to protect against stampeding herd problem.
+ * Items are locked all together with single $lock_key.
+ * @param array $cache_keys cache record keys
+ * @param string $lock_key cache locking record key
+ * @param callable $cache_save_cb callback to save data fetched from database to cache
+ * @param callable $db_fetch_cb callback to fetch data from database
+ * @param callable $combine_cb callback to combine items from cache and database
+ * @return bool|mixed the value from cache/database or FALSE otherwise
+ */
+function model_fetch_multi_with_cache_locks(array $cache_keys, $lock_key, callable $cache_save_cb, callable $db_fetch_cb, callable $combine_cb)
+{
+    $cache_result = cache_fetch_multi_or_lock($cache_keys, $lock_key, $lock_result);
+
+    if (count($cache_result) === count($cache_keys))
+        return $combine_cb(array_values($cache_result), array());
+
+    $uncached_item_keys = keys_not_from_array($cache_result, $cache_keys);
+    $db_result = $db_fetch_cb($uncached_item_keys);
+
+    if ($lock_result) {
+        if ($db_result)
+            $cache_save_cb($db_result);
+        cache()->delete($lock_key);
+    }
+
+    if ($db_result === false) {
+        return false;
+    }
+
+    return $combine_cb(array_values($cache_result), $db_result);
 }
 
 function model_fetch_item($id)

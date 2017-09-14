@@ -30,3 +30,18 @@ function config()
     return ConfigSingleton::getInstance();
 }
 
+function keys_not_from_array($array, $keys)
+{
+    $result = array();
+
+    foreach ($keys as $key) {
+        if (!array_key_exists($key, $array)) {
+            $result[] = $key;
+        }
+    }
+
+    return $result;
+}
+
+
+
