@@ -139,7 +139,7 @@ function model_fetch_ids($sort_column, $sort_direction, $page)
     $cache_key = cache_page_key($sort_column, $sort_direction, $page, $version);
     $lock_key = cache_lock_key($cache_key);
 
-    $first_fetch_page = intdiv($page, PagingConstants::PAGE_FETCH_COUNT);
+    $first_fetch_page = $page -  $page % PagingConstants::PAGE_FETCH_COUNT;
 
     $cache_save = function ($ids) use ($first_fetch_page, $sort_column, $sort_direction, $version) {
         cache_save_pages($first_fetch_page, $sort_column, $sort_direction, $version, $ids);
